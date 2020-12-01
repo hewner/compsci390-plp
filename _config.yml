@@ -1,5 +1,6 @@
 theme: jekyll-theme-minimal
-title: CSSE403 Programming Language Paradigms 
+title: CompSci 390 Spring 2021
+description: Programming Languages Paradigms
 layouts_dir: .internal/layouts
 include: ['.internal']
-exclude: ['Private'] # This shouldn't be uploaded in the first place, but for local testing
+moodle: https://moodle.rose-hulman.edu/course/view.php?id=65273
