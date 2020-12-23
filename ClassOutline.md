@@ -112,6 +112,223 @@ I will touch on the highlights only.
 4.  Fill out the online quiz
 5.  If you have time, feel free to look at the coding project due soon
 
+# Scheme 1
+
+## What is Scheme?
+
+### A functional language 
+
+In my experience, this means:
+
+a. Functions are a very well supported language feature
+
+b. Functions are the primary mechanism of abstraction (e.g. compare
+object-oriented lanaguages, where objects are the primary mechanism of
+abstraction)
+
+### A lisp-like langauge
+
+Easy to identify - just look for lots of paranthesis in the code
+
+Scheme smooths over some of Lisp's warts
+
+### A Flexible Langauge
+
+Can be made to act almost like any language you want
+
+Built to be easy to implement, easy to modify
+
+Not so opinionated or weird, but we'll be concentrating on the more
+interesting parts
+
+
+
+## Scheme Code
+
+    (display "hello world")
+    
+A scheme function call is a paren-enclosed list with the function
+being called leftmost and then its parameters to the right.  All
+functions in scheme work this way eg:
+
+    (* (+ 1 2 3) 4)
+
+Note that in scheme parens are never optional - they mean a function
+invocation, so this is valid:
+
+    (+ 1 2)  <- invoke + with 2 arguements
+    
+But this is an error
+
+    (2) <- invoke "2" with 0 arguments
+
+## Scheme Functions
+
+    (define double 
+        (lambda (x)
+            (* 2 x)))
+            
+    ...elsewhere...
+    (double 17)
+
+The thing after the lambda is a parameter list.
+
+You may note that variables are not typed in scheme.
+
+## Scheme Lists
+
+The most fundamental data structure in Scheme is the linked list.  You
+can make list by using the list function:
+
+    (list 1 2 3)
+    
+Lists are a set of pairs.  The first item of the pair is the data
+entry, the second item is the next node.  Lists are terminated with
+the null node '().  You can make a pair yourself using the pair making
+function cons, which is also how you add to a list:
+
+    (cons 1 (cons 2 (cons 3 '())))
+    
+To get the first element of a pair, use the function car
+
+    (car (list 1 2 3)) ==> 1
+    
+To get the second element of a pair, use the function cdr (usually
+this will be a list)
+
+    (cdr (list 1 2 3)) ==> (2 3)
+
+
+## Conditionals
+
+    (if (> x 3) "greater" "less")
+    
+    (cond [(> x 3) "big"]
+          [(> x 1) "meduium"]
+          [#t "small"])
+
+Note that square brackets mean the same thing as parens, just used to
+differentiate.
+
+## Recursion
+
+    (define double-list
+        (lambda (input)
+            (if (null? input) 
+                '()
+                (cons (* 2 (car input)) (double-list (cdr input))))))
+                
+Thus function returns a new list - it doesn't modify the old list.
+There are set functions that would let you actually modify, but they
+are used very sparingly.
+
+## Atoms & Quote
+
+An atom is sort of like a global enum - or a specialized string that's
+quoted in a weird way:
+
+    (let [(x 7) (y 'hello)]
+        (list x y))
+
+     (define factorial
+        (lambda (input)
+        (cond [(< input 0) 'negative-fact-error]
+              [ blah blah blah ])))
+
+Using ' or the quote function any block of scheme can become lists
+
+    '(1 2 3) is the same as (list 1 2 3)
+    
+But
+
+    '(double-list (list 1 2 3)) produces a 2 element list starting with double-list atom
+
+## References
+
+A good summary of scheme basics:
+https://courses.cs.washington.edu/courses/cse341/03wi/scheme/basics.html
+
+# Scheme 2 - Let's all Love Lambda
+
+Lambda is a scheme function that returns a function
+
+    (lambda (x) (* 2 x))
+
+When we use it with define we set global functions but we can also use
+it in ordinary code
+
+    ((lambda (x) (* 2 x)) 7)
+
+Note in the above case we are using a lambda expression as the special
+function first argument of the function.
+
+## Using lambdas
+
+Imagine I wanted a way to repeat some code X times.  I might do it
+like this:
+
+    (repeat (lambda () (display "lets all love lambda")) 5)
+    
+The code I want to run is passed as a parameter through a lambda.
+
+Here's the implementation - I encourage you to try and write it yourself before peeking
+
+### Don't peek!
+
+    (define repeat (lambda (thing-to-repeat times-to-repeat)
+        (if 
+            (zero? times-to-repeat) '()
+            (cons (thing-to-repeat) (repeat thing-to-repeat (- times-to-repeat 1))))))
+        
+
+
+## One extremely common use of this pattern is list iterators
+
+The most basic iterator is map.  It takes a function and applies it to
+a list, returning a new list of each of the results:
+
+    (map (lambda (x) (+ x 3)) '(1 2 3 4))
+    
+Another handy one is filter - takes a function that returns a boolean
+value and only returns elements where this is true:
+
+    (filter (lambda (x) (> x 3)) '(5 4 7 8 2 1))
+    
+There is a very flexible variant called reduce.  The name of Google's
+famous map/reduce is based on these two functions.
+
+## Binding
+
+Outside of the parameters, all variables are bound at the time the
+lambda is created.
+
+    (letrec 
+        [(var 10) (do-add (lambda (num) (+ var num)))]
+        (let [(var 100)] (do-add 2)))
+        
+        
+    
+## Functions that create functions
+
+Another cool thing we can do is build functions that create other
+functions i.e. functions that return a lambda.
+
+    (define append-func 
+        (lambda (x)
+        (lambda (list-input)
+            (append list-input (list x)))))
+        
+    ((append-func 'q) (list 1 2 3))
+
+But even more interesting we can use this in defines
+
+    (define append-q (append-func 'q))
+
+    (append-q '(a b))
+
+We can build functions that combine functions, add error checking to
+functions, etc.  This is where scheme can get a little meta.
+
 # Prolog 1
 
 ## Facts and implications
