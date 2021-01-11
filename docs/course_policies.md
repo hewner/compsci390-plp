@@ -1,8 +1,8 @@
 This document outlines the main course policies for CSSE403.
 
-Instructor: Dr. Mike Hewner (feel free to call me Buffalo)
+Instructor: Dr. Mike Hewner hewner@cs.duke.edu
+TA: Qiulin Li qiulin.li@duke.edu 
 
-[Here's my contact info](https://moodle.rose-hulman.edu/blog/index.php?entryid=111)
 
 # Introduction
 
@@ -22,29 +22,28 @@ code, in a lot of strange languages.
 
 Seven Languages in Seven Weeks by Bruce A. Tate
 
-This book is required and will be a useful reference as we will be
+This book is optional but will be a useful reference as we will be
 going through some languages that have less-than-detailed resources
-available online.  There are both electronic and physical versions of
-the book available, including DRM free PDFs – either is fine.  All
-versions are quite affordable – please don’t pirate this textbook.
+available online.  It covers 3 of the 5 languages we'll do - Prolog,
+Erlang, and Haskell.
 
-# Learning Outcomes
-
-See the [CSSE403CAP.md](CSSE403CAP.md)
+There are both electronic and physical versions of the book available,
+including DRM free PDFs – either is fine.  All versions are quite
+affordable – please don’t pirate this textbook.
 
 # Grading
 
 | Category               | Weight |
 |------------------------|--------|
-| Small Assignments      | 38%    |
-| Medium Assignments     | 38%    |
-| Final Language Project | 19%    |
-| Class Participation    | 5%     |
+| Small Assignments      | 40%    |
+| Medium Assignments     | 40%    |
+| Final Language Project | 20%    |
+
 
 ## Small Assignments
 
 As we are introducing programming languages, there will be small daily
-assignments.  You’ll submit them via SVN.  These projects must be done
+assignments.  You’ll submit them via Sakai.  These projects must be done
 individually.
 
 ## Medium Assignments
@@ -69,26 +68,26 @@ programming language (your choice), do an in-class lecture about it
 language.  Projects will be demoed during the final exam time (or
 earlier, if your team finishes earlier).
 
-## Class Participation
-
-Students are expected to attend class and participate actively in
-class discussion.  You are also required to attend class (except on
-strictly assignment work days).  Please email me if you must miss
-class.  More than 3 unexcused absences and I will drop you a letter
-grade.
-
 ## Final Exam
 
 There is no final exam, but projects are demoed in the final exam
 time.
 
-# Course Evaluation and Feedback
+# Getting Help
 
-Please feel free to provide feedback about the course at any time. If
-you feel uncomfortable talking with me directly, there is an anonymous
-feedback box on the Moodle page for this course where you can provide
-feedback throughout the term; I get notified when it is updated and
-will try respond to feedback in a reasonable time.
+The course piazza is your place of first resort.  Please post
+questions there and please respond to questions posted there.
+Remember - everybody is having trouble coming up to speed quickly in
+crazy programming languages - so don't hesitate to ask questions.
+
+Prof. Hewner has online office hours 1pm-4pm Monday-Thursday via MS
+Teams.  Submit a chat request to start with; it’s common things will
+progress to a video chat/screen share if needed.  Note that this is a
+really long range of office hours, meaning that occasionally
+Prof. Hewner might be called away.  It is also common that there be
+waiting for office hours near deadlines.  If your schedule is busy and
+you need a pre-arranged block of time, email in advance to schedule a
+meeting.
 
 # Late Submissions
 
@@ -99,23 +98,13 @@ that, however).
 
 # Academic Integrity
 
-Recall the Institute policy on academic misconduct:
+The Duke academic honestly policies are quite strict.  Please don't
+cheat or it can end very badly!
 
-> Rose-Hulman expects its students to be responsible adults and to
-> behave at all times with honor and integrity.
-
-Exams and homework will be done on an individual basis except when
-explicitly noted. The simple rule of thumb for individual work is:
+Homework will be done on an individual basis except when explicitly
+noted. The simple rule of thumb for individual work is:
 
 Never give or use someone else’s code or written answers.
-
-Such exchanges are definitely cheating and not cooperation. The
-departmental statement on academic honesty has more detailed advice.
-
-This policy INCLUDES sharing code after graduating from this
-course. If your code is found used in some other students solution,
-after your have already completed this course - you will receive a
-retroactive F in this course.
 
 We encourage you to discuss the problems and general approaches to
 solving them with other students. However, when it comes to writing
@@ -145,4 +134,5 @@ the assignment (that's negative points, not just 0 credit). In places
 where the cheating seems intentional, the penalty is an automatic F in
 the course. TO BE CLEAR: you can get an automatic F in this course if
 you are caught cheating on one small assignment, even one time.
+Further penalties may be leveled by the university.
 
