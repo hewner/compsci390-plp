@@ -6,6 +6,12 @@
 ; for all these problems, use recursion not iteration
 ; do not modify the values of variables (e.g. set methods disallowed)
 
+; To test - as you develop it's probably easiest to just write the functions
+; above, hit run and then evaluate test expressions below.
+;
+; But you should also test against the included unit tests.  Take in tests.rkt
+; to see the tests and how to run them
+
 ; Exercise 2.7.2
 ; The procedure length returns the length of its argument, which must be a list. For example, (length '(a b c)) is 3.
 ; Using length, define the procedure shorter, which returns the shorter of two list arguments. Have it return the
@@ -18,8 +24,9 @@
 ; (shorter '(a b) '(c)) => (c)
 
 
-(define (shorter list1 list2)
-  'not-yet-implemented)
+(define shorter
+  (lambda (list1 list2)
+    'not-yet-implemented))
 
 
 ; Exercise 2.8.3
@@ -32,8 +39,9 @@
 ;
 ; there's a hint in the chapter if you need it
 
-(define (make-list size)
-  'not-yet-implemented)
+(define make-list
+  (lambda (size value)
+    'not-yet-implemented))
       
 
 ; Exercise 2.8.4
@@ -44,11 +52,13 @@
 ; (list-ref '(a short (nested) list) 2) => (nested)
 ; (list-tail '(a short (nested) list) 2) => ((nested) list) 
 
-(define (list-ref lst num)
-  'not-yet-implemented)
+(define list-ref
+  (lambda (lst num)
+    'not-yet-implemented))
 
-(define (list-tail lst num)
-  'not-yet-implemented)
+(define list-tail
+  (lambda (lst num)
+    'not-yet-implemented))
 
 ; Exercise 2.8.7
 ;
@@ -57,7 +67,9 @@
 ; (transpose '((a . 1) (b . 2) (c . 3))) => ((a b c) 1 2 3) 
 ;
 ; [Hint: ((a b c) 1 2 3) is the same as ((a b c) . (1 2 3)).] 
-(define (transpose pair-list)
-  'not-yet-implemented)
+
+(define transpose
+  (lambda (pair-list)
+    'not-yet-implemented))
 
 (provide shorter make-list list-ref list-tail transpose)
