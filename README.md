@@ -1,16 +1,9 @@
----
-title: CSSE000
----
+# Compsci 390: Programming Language Paradigms
 
-Welcome to the CSSE000!  All the materials are available from [the
-course github repository]({{ site.github.repository_url }}).
+Click the show code link above to see everything.
 
-# List of all rendered files
+Of particular interest:
 
-If you'd like to view a particular page in the repo full-page, without
-all the associated Github history and info, here's direct links:
-
-{% for item in site.pages %}
-* [{{item.path}}]({{ site.baseurl }}{{item.url}})
-{% endfor %}
-
+* [Class Outline](ClassOutline.md) - all the course notes
+* [Homework](Homework) - all the assignments
+* [Docs](docs) - useful course logistics stuff
