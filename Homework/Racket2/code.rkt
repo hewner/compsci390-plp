@@ -1,7 +1,6 @@
 #lang racket/base
 
-; Skim/read chapter 2 here:
-; https://scheme.com/tspl4/start.html
+; This exercise has 4 problems, each worth 6 points for a total of 24 points.
 
 ; for all these problems, use recursion not iteration
 ; do not modify the values of variables (e.g. set methods disallowed)
@@ -17,11 +16,9 @@
 ; (reject null? '(a () () b () c)) => (a b c)
 ; (reject (lambda (n) (> n 3)) '(6 3 2 4 6 7 1)) => (3 2 1)
 
-(define (reject func list)
-  (cond [(null? list) '()]
-        [(func (car list)) (reject func (cdr list))]
-        [else (cons (car list) (reject func (cdr list)))]
-        ))
+(define reject
+  (lambda (func list)
+    'not-yet-implemented))
 
 ; Write a function "func-that-adds" that takes an integer and returns a 1 parameter
 ; function that adds that integer to its input
@@ -30,8 +27,9 @@
 ; ((func-that-adds 3) 3) => 6
 ; (map (func-that-adds 2) '(1 2 3)) => (3 4 5)
 
-(define (func-that-adds num)
-  (lambda (input) (+ num input)))
+(define func-that-adds
+  (lambda (num)
+    'not-yet-implemented))
 
 ; Write a function listify-func which takes a function that takes 1 parameter
 ; 
@@ -40,9 +38,10 @@
 ; each member of the list and return a list as a result
 ;
 ; Hint: use map within your lambda
-(define (listify-func func)
-  (lambda (lst)
-    (map func lst)))
+(define listify-func
+  (lambda (func)
+    'not-yet-implemented))
+
 ; Example
 ; (define (add3 n) (+ 3 n))
 ; ((listify-func add3) '(1 2 3 4)) => (4 5 6 7)
@@ -50,13 +49,9 @@
 ; Write a function chain-func which combines a list of one parameter functions into one
 ; function.  The output of the first step of the chain should be passed as the input
 ; to the second step etc.
-(define (chain-func lst)
-  (lambda (input)
-    (if (null? lst)
-        input
-        (let ((output ((car lst) input))
-              (do-rest (chain-func (cdr lst))))
-          (do-rest output)))))
+(define chain-func
+  (lambda (lst)
+    'not-yet-implemented))
 
 ; Examples:
 ; ((chain-func (list cdr length)) '(a b c)) => 2
