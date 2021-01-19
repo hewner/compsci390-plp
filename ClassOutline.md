@@ -3,30 +3,7 @@
 > A language that doesn't affect the way you think about programming is not worth knowing.”
 >      ― Alan J. Perlis (Turing Award Winner, developer of ALGOL)
 
-## Introduction
-
-### Let's name some programming languages
-
-(On board)
-
-### Let's name some adjectives for programming languages
-
-#### My Adjective List
-
-1. Object--Oriented/Functional/Procedural/Imperative
-2. High Level/Low Level
-3. Compiled, virtual machined, interpreted
-4. Strongly typed/weakly typed
-5. C--like (scheme--like, Smalltalk--like, etc.)
-6. Scripting
-7. Turing complete
-
-
-
-
-
-
-### Why so many?
+## Why so many programming languages?
 
 ![Big Graph of Programming Languages](languages.png)
 
@@ -67,18 +44,13 @@ What you won't learn in this class
 
 ### We'll do some weird languages in this class
 
+-   Scheme
 -   Prolog
 -   Erlang
--   Elm
+-   Haskell
+-   Rust
 
 ## Some important details
-
-### Call me Buffalo
-
-Or Dr. Buffalo in a pinch
-Or whatever you want
-
-Check out Moodle for every imaginable kind of contact info (yes we can be facebook friends if you want but I don't post about classes).  You can call my cell phone if you're having a problem.
 
 ### Design of this class
 
@@ -93,9 +65,9 @@ Always a dream of mine to teach a class like this
 
 ### Course Policies
 
-You are obligated to read and understand the complete Course Policies document.
+You are obligated to read and understand the complete Syllabus/Course Policies document.
 
-It is on Moodle.
+It is linked off Sakai.
 
 I will touch on the highlights only.
 
@@ -107,10 +79,8 @@ I will touch on the highlights only.
 ## What you need to do today
 
 1.  Maybe install a unix environment on your laptop (recommended - you're responsible for your own environment)
-2.  Install swi-prolog (link in the online quiz)
-3.  Read chapter 4.1 and try out some of the examples
-4.  Fill out the online quiz
-5.  If you have time, feel free to look at the coding project due soon
+2.  Install Racket Scheme https://racket-lang.org/
+3.  Acquaint yourself with upcoming due dates in the course schedule
 
 # Scheme 1
 
@@ -328,6 +298,430 @@ But even more interesting we can use this in defines
 
 We can build functions that combine functions, add error checking to
 functions, etc.  This is where scheme can get a little meta.
+
+# Scheme 3: Continuations
+
+## Why do we have functions?
+
+You probably take functions for granted, but they're actually a little
+special.  If you've taken a hardware course you probably know that the
+CPU actually executes by just jumping to a specific instruction and to
+make functions work we actually have to do a lot of work with pushing
+things into stack memory and popping them into registers.  So why do
+we go through this effort and time?
+
+A function is like a tiny little encapsulated universe:
+
+    public int my_func(int a, int b) {
+        // I don't have to think about worry about how I was called:
+        // my caller can't really affect me unless I let it
+        
+        // in my local context I can make new things and use them
+        int c = 77 * a;
+        
+        int d = other_func(a, b);
+        
+        System.out.println("Got value " + d);
+        
+        // I don't care how function other_func is implemented
+        // I know I will come back to this point and continue.
+        // other_func can't affect the values of a b c
+        return a + b + c + d;
+    }
+
+Functions provide isolation - much in the same way the OS provides
+isolation between programs running on the same computer.  You don't
+have to be totally isolated - you could use global variables for
+example.  But you understand the implications: if you make c a global,
+it means other\_func could modify it, meaning c might not be 77*a when
+the return happens.  If you leave it as written c is isolated.
+
+The thing is that any abstraction is good until it's not.
+
+## Errors & Exceptions
+
+Error results are one place where our desires about how code ought to
+work tends to violate the function paradigm.  Imagine for example that
+other\_func is something that could in theory fail - maybe it's
+reading a value from a server we communicate with.  If that's the case
+we don't want to print "got value" we don't want to return an
+addition - we really just need to go to an error handler elsewhere in
+the program.
+
+Of course we could stick with the function paradigm - we could make
+other\_func return an error result and check that error result before
+we print for example.  BUT the whole point is we don't *want* to do
+that, we want to just jump to error handling.  The question is how can
+we do that in a way that doesn't make our usual function rules totally
+unreliable?
+
+    try {
+        my_func(22, 7);
+    } catch (CommunicationException e) {
+        // error handler code
+    }
+
+Note that this does potentially violate expectations...but it has
+narrow limits.  We're allowed to violate function rules - but only in
+1 really specific way that the language designers anticipated.  Even
+so you can easily find cases where people introduce bugs by not
+anticipating how exception handling could interact with other parts of
+their program.
+
+## Continuations
+
+Continuations is a feature in scheme that allows us to violate the
+normal function rules, but unlike Java it's designed to be
+general-purpose.  You can use it to build your own exception system,
+rudimentary threading system, as a trixy way to handle processing web
+requests, etc.
+
+Here's a simple example:
+
+    (define continuation-example
+      (lambda ()
+        (display " result is ")
+        (display (call/cc (lambda (my-continuation)
+                            (display "(a)")
+                            (my-continuation 100)
+                            (display "(b)")
+                            999
+                    )))
+        (display ". \n")))
+
+The call/cc function calls the passed lambda with something that looks
+a little like another lambda as parameter.  It's not a lambda though,
+it's a continuation.
+
+When you call a continuation, it resets the call-stack to a stack
+corresponding to the call/cc function having just returned with the
+given value.
+
+At first pass, this seems like a shortcut - we call my-continuation
+and immediately "shortcut" skipping the remainder of our lambda.
+
+## Weirder continuations
+
+What happens if we store a continuation?
+
+    (define stored-cc null)
+    
+    (define continuation-example
+      (lambda ()
+        (display " result is ")
+        (display (call/cc (lambda (my-continuation)
+                            (display "(a)")
+                            (set! stored-cc my-continuation)
+                            (display "(b)")
+                            999
+                    )))
+        (display "!!!!!\n")))
+
+When we evaluate a continuation we reset the stack to its stored
+state - even if the function has already returned once before.
+
+This is much easier to see evaluated interactively - if we try to write a program to use this effect, we have to be very careful not to infinite loop.  Here's an example:
+
+    (let ((my-cont null) (my-num 4))
+      (call/cc (lambda (cont)
+                 (set! my-cont cont)))
+      (display "my-num is ")
+      (display my-num)
+      (set! my-num (- my-num 1))
+      (display "\n")           
+      (if (eq? my-num 0)
+          'done
+          (my-cont 99)))
+
+## Can we use this for stuff?
+
+Yes!  But kinda weird stuff.
+
+For example, let's say we had a function that queried input from the
+keyboard like this:
+
+    (define get-number
+      (lambda (query)
+        (display query)
+        (string->number (read-line))))
+
+Then I might naturally write a program that looks like this:
+
+    (define do-add
+      (lambda ()
+        (let ((a (get-number "What is the first number?\n"))
+              (b (get-number "What is the second number?\n")))
+          (display "Sum is ")
+          (display (+ a b)))))
+
+If I wanted to convert this thrilling application to a webpage though,
+I'd have a problem.  Get number becomes a separate webpage that must
+be displayed to the user.  If we have multiple users they might be in
+a different stage of the process.
+
+Solution - associate each user with a continuation.  Now when data
+comes in from a user we can return to the function in progress that we
+paused to deal with the web request.
+
+# Scheme 4: Macros
+
+We don't have a macro assignment but I couldn't leave Scheme without
+talking about macros.  Macros exist in other languages too (at varying
+levels of functionality) but Scheme is the perfect microcosm of 
+the pros and cons of macros.
+
+## Let's consider: if
+
+The humble if might look like an ordinary function in scheme but it's
+not.  Consider this:
+
+    (if (> x 4) (display "big") (display "small"))
+
+Our instincts tell us that this should *either* display "big" or
+"small" but that's not the way functions work.  If if was an ordinary
+function we would want to evaluate if's parameters before invoking if
+itself - meaning we would always print both big and small.
+
+A more correct function implementation of if would need to be invoked
+like this:
+
+    (if (> x 4) (lambda () (display "big")) (lambda () (display "small")))
+    
+Now the evaluation of the then and else clause is delayed and the "if"
+implementation can only invoke the one it wishes to.
+
+But the above form is exceedingly verbose and ugly.
+
+Macros allow us a way to transform code - write our code with the
+pretty version of if, but then transform it into the correct version.
+This implies a couple of things:
+
+1. Macros don't make the language any more powerful - they are always
+   in some sense syntactic sugar BUT frequently they can be used to
+   implement very fundamental parts of the language.
+
+2. By doing transformations, we can violate the normal language
+   mechanisms which means it's hard to make good guesses about what
+   might happen.  Something like this could set the value of x for
+   example, which would not be possible if we think of my-macro like a
+   function:
+   
+   (my-macro x 17)
+   
+3. Because of #2, we want some rules that limit a macro's power.
+   Otherwise reading code could become impossible.
+    
+## Macros in scheme
+
+Because scheme code is essentially hierarchical lists of lists, it's
+natural to think macros could be just code transformations:
+
+    (require compatibility/defmacro)
+    (require (for-syntax racket/base))
+        
+    (defmacro reverse-code body
+      (display "running reverse-code" )
+      (display body)
+      (display "\n")
+      (reverse body))
+    
+    (define example1
+      (lambda ()
+        (reverse-code "hello world" display)))
+    
+    (define example2
+      (lambda ()
+        (reverse-code 1 2 (+ 3 4) +)))
+
+Note a few things about the implementation here:
+
+1.  This reverse code could plausibly be a function in most cases but
+    it's a simple example
+2.  The macro runs at compile time, not at runtime.  That means I
+    can't evaluate the expressions I'm given (though I can generate
+    code that will evaluate when the function is run).
+3.  I have limitations - the macro operates on scheme lists structures
+    NOT scheme text.  So I could not build a macro to-emoji that would
+    translate (to-emoji :) ) into an unicode emoji character because
+    the paren would cause a parsing problem.  I also can only work
+    with the code within the macro - I can't say expand the functions
+    that code calls and run the macro on that code.
+    
+## Problems with defmacro
+
+Sometimes we might want generate some code that has a let.  So say we
+wanted a case statement that looks something like this:
+
+    (case x 
+        (7 (display "small"))
+        (8 (display "medium"))
+        (9 (display "large")))
+
+The code we'd want to generate would be something like this:
+
+    (let ((result x))
+        (if (= result 7) (display "small"))
+        (if (= result 8) (display "medium"))
+        (if (= result 9) (display "large")))
+
+The introduction of the variable result is pretty important - if that
+case expression is something with side effects we don't want to
+evaluate it multiple times.
+    
+But the issue is that now the variable result is now polluting our
+generated code.  So if I try to use case where I have a local variable
+result, something like this
+
+    (case my-cool-var
+        (7 (display result))
+    
+Will always display 7, because the macro is making a new variable
+binding the user of the macro is not aware of.
+    
+
+## Hygenic Racket macros
+
+(this discussion takes a lot from
+https://en.wikibooks.org/wiki/Scheme_Programming/Macros but I've
+changed some specifics)
+
+Let's say we want to implement a while loop
+
+    (while (> z 0) (begin (display "z") (set! z (- z 1))))
+
+
+Understand what that conceptually means before you go on to the
+implementation.
+
+Here's one way to do it with the hygienic macro syntax.  Note that it
+uses an internal let (er letrec) but this turns out to be safe.
+
+    (define-syntax while
+      (syntax-rules ()
+        ((_ condition body)
+    
+         (letrec
+             ((loop (lambda ()
+                      (if condition
+                          (begin 
+                            body
+                            (loop))
+                          null
+                          ))))
+           (loop))
+    
+         )))
+
+
+This involves something called syntax objects which is a little like
+quoted expressions but also include stuff like source location etc.
+It's not important to me you understand the details - what I more want
+you to do is get the feel that the power is basically the same with
+the unhygenic macros but it's more complicated.
+
+## Why are Scheme Macros special?
+
+### Scheme: a language that can be any language
+
+The flexibility of these Macros mean that Scheme/Lisp can accommodate
+almost any language feature you can think of -> so long as the code
+can be translated through macros back to pure Scheme.
+
+#### An example of "imperfect" language translation
+
+Sometimes in languages that didn't start out as object-oriented you
+can see this pattern where we make functions that act like object
+methods BUT they wouldn't normally have the state associated with an
+object context so we pass it as a parameter.
+
+    def translateBy(self, deltaX, deltaY):
+        self.x = self.x + deltaX
+        self.y = self.y + deltaY
+
+When you do this a method invocation is just a weirdly formatted
+function call:
+
+    myPoint-->translateBy(3,4) => translateBy(myPoint, 3, 4)
+
+Sometimes we can make new operators (e.g. -->) in our language, in
+which case we don't actually have to change the language and OO
+methods can be a library.  But usually you can't change the way
+functions are declared, so you're left an implicit rule that methods
+take self as their first parameter.
+
+Folks will often debate if a language with such a library is a
+"really" object oriented or whatever.  My philosophy is that language
+paradigms are something that exist in a programmers head, not in a
+language specification.  But the warts (big or small) do exist and can
+even make certain things very annoying or cumbersome.
+
+In Scheme we have a language where Macros are so powerful, we can
+implement almost any syntax we desire without warts.  This makes
+scheme much loved among people who like to build and play with
+languages.
+
+### What's the downside?
+
+#### Complexity
+
+As programmers we can't usually understand the totality of our code
+bases, meaning we rely on rules to help us understand what's possible
+and not possible:
+
+    (coolFunc 1 2 (doThing 3))
+    
+If this line is causing a crash, there's many sources of trouble by
+not an infinite number.  There could be by multiple coolFunc functions
+that might be referred to for example - I might have to brush up on my
+scoping rules.  But I do know that doThing will be called before
+coolFunc, that it's result will produce a parameter I might expect to
+see used by coolFunc etc.
+
+    ;; note: coolFunc is a macro
+    (coolFunc 1 2 (doThing 3))
+    
+In this code doThing might never be invoked, or might be invoked
+several times.  1 and 2 could be passed to it as parameters, though
+the structure implies that they are not.  doThing might not even be a
+function at all.
+
+This is why it's important that the rules of macros be limited in some
+ways.  Otherwise bets are really off.
+
+#### Jack of All Trades
+
+If we like a language feature, we probably want it used a lot.  I can
+write OO code in scheme, but 90% of the code I call will not be OO.
+Also, people might reject my pull requests.  If I want to be accepted,
+I might be inclined to stick to the "core"...which in a language like
+Scheme can be kept very bare.
+
+Having too many options and no "official" choice also means I have to
+investigate myself - and maybe the option I come up with won't be the
+best.
+
+The flexibility also means that Scheme has a utilitarian and bland
+syntax.  Everything being a "first class" construct means nothing is
+(except parens I guess, and we get too many of those of those).
+
+## What I want you to take away
+
+### What a Macro is
+
+A "compile time" transformation of the source that's
+user-controllable.  Always you to build syntactic features that almost
+have no limits.
+
+Lots of languages have them, Scheme's a very powerful
+
+### Scheme's Macros involves transforming scheme code
+
+...which is lists.  For scheme code is data and data is code.  Makes
+Macro writing a lot easier and it's something only Scheme can do.
+
+### This facility makes Scheme supremely flexible
+
+It has it's downsides too but being the every-language-language is pretty cool.
 
 # Prolog 1
 

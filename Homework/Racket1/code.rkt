@@ -12,6 +12,9 @@
 ; But you should also test against the included unit tests.  Take in tests.rkt
 ; to see the tests and how to run them
 
+; There are 4 exercises here - each is worth 6 points for a total of 24 points.
+
+
 ; Exercise 2.7.2
 ; The procedure length returns the length of its argument, which must be a list. For example, (length '(a b c)) is 3.
 ; Using length, define the procedure shorter, which returns the shorter of two list arguments. Have it return the
