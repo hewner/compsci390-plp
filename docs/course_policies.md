@@ -48,7 +48,7 @@ individually.
 
 ## Medium Assignments
 
-There will also be 3 larger projects – one for each of the 3 main
+There will also be 5 larger projects – one for each of the 5 main
 programming languages we will be discussing in class.  These projects
 can be done individually or in pairs.
 
