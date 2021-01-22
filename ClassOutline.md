@@ -723,6 +723,18 @@ Macro writing a lot easier and it's something only Scheme can do.
 
 It has it's downsides too but being the every-language-language is pretty cool.
 
+# Scheme 5: Writing a Interpreter
+
+So this lecture is help folks getting started with the
+Scheme-in-Scheme assignment.  I did a live coding exercise
+where we made a little boolean interpreter in scheme.  The code 
+for that is located in simple_interpreter.rkt which is in the
+scheme-in-scheme assignment directory.
+
+Not many notes beyond that code - feel free to watch the lecture if
+you're curious.
+
+
 # Prolog 1
 
 ## Facts and implications
