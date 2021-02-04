@@ -734,6 +734,172 @@ scheme-in-scheme assignment directory.
 Not many notes beyond that code - feel free to watch the lecture if
 you're curious.
 
+# Scheme 6: Y Combinator
+
+So this lecture is intended to be watched after you've finished Part 1
+of the Scheme-in-Scheme interpreter.
+
+## How much language do you "need"?
+
+The my-scheme language has a lot fewer features than regular scheme -
+some of those features definitely make our life less annoying -
+e.g. cond, letrec, globals using #define, setting variables.  But does
+the lack of these features really make the language less powerful?
+
+### The need for loops
+
+One line you could definitely draw is if there's no way to have loops
+(i.e. each program finishes in a number of steps proportional to its
+size) it would be less powerful - i.e. some algorithms cannot be
+implemented.  We'd need some heavy math to actually prove that (take a
+Theory of Computation class!) but I hope it's intuitively true.
+
+But it turns out our language can do recursion as we saw at the end of
+step 1:
+
+    (my-let ((simple-fact
+              (my-lambda (recurse val)
+                         (my-if (my-eq? val 0) 1
+                                (my-* val (recurse recurse (my-- val 1)))))))
+            (simple-fact simple-fact 3))
+
+So it can have loops!  Turns out our my-scheme language practically
+speaking is as powerful as scheme (i.e. you can build a full scheme
+interpreter in my scheme if you wished).
+
+It doesn't take many features for a language to be fully expressive.
+But what is the minimal set of features?
+
+### Minimal programming languages
+
+It turns out that actually just the ability to define and invoke
+functions is enough (i.e. lambda).  You need literally nothing else -
+not booleans, not numbers, not if statements and you can make a
+language that (in some senses of the word) can do any calculation that
+a language like scheme can do.  This is called the Lambda Calculus and
+it's pretty cool - I encourage you to check it out.
+
+But even before the lambda calculus existed there was knowledge about
+things called combinators - very simple rules that could be cleverly
+used to compute.  Here's a nice introduction:
+
+https://writings.stephenwolfram.com/2020/12/combinators-a-centennial-view/
+
+The Y combinator is something that exists in the lambda calculus -
+it's something you can build out of pure lambda expressions that makes
+it possible for the lambda calculus to implement recursion.
+
+But its easier to understand the y combinator in a slightly more
+featureful language.
+
+
+## The Purpose of the Y Combinator
+
+The Y combinator is a function that makes it possible to implement
+recursive functions in a language that doesn't support self
+referential declarations (e.g. doesn't support define or letrec) -
+my-scheme is such a language.
+
+Let's say I wanted to write a factorial function
+
+    (let ((myfact
+      (lambda (n)
+        (if (eq? n 0)
+            1
+            (* n (myfact (- n 1)))))))
+      code-using-myfact-goes-here)
+
+this won't work because myfact is undefined. within that let.  So
+instead I'll do it like this
+
+    (let (
+        (fact-for-y
+            (lambda (recurse val)
+                (if (= val 0) 1 (* val (recurse (- val 1)))))))
+          (let ((myfact (y-comb fact-for-y)))
+              code-using-myfact-goes-here))
+
+Note y-comb there.  It's a function that takes a function and makes it
+recursive.
+
+## A Simple Y Combinator
+
+    (define y-comb
+      (lambda (func)
+        (let ((replace-me (quote should-not-be-used)))
+          (let ((result (lambda (input) (func replace-me input))))
+            (set! replace-me result)
+            result))))
+
+
+## A More Complex Y Combinator
+
+The notes here are an adapted version of the javascript Y-Combinator presented here.
+I think that version is really nice you'd like to check it out:
+
+http://www.kestas.kuliukas.com/YCombinatorExplained/
+
+
+    ;; step 1 your basic factorial
+    
+    (define myfact
+      (lambda (n)
+        (if (eq? n 0)
+            1
+            (* n (myfact (- n 1))))))
+    
+    ;; step 2 get rid of that recursive call
+    
+    (define make-fact
+      (lambda (givenfact)
+        (lambda (n)
+        (if (eq? n 0)
+            1
+            (* n (givenfact (- n 1)))))))
+    
+    (define myfact2 (make-fact myfact)) ;; silly
+    
+    ;; step 3
+    ;; make new factorial functions just for this
+    ;; step
+    (define make-real-fact
+      (lambda (make-fact)
+        (letrec ((try-fact
+                 (lambda (n) 
+                   ((make-fact try-fact) n))))
+          (make-fact try-fact))))
+          
+    (define myfact3 (make-real-fact make-fact))
+    
+    ;; step 4 make try-fact non-recursive by
+    ;; creating an additional function
+    
+    (define make-real-fact2
+      (lambda (make-fact)
+        (letrec ((get-next-try-fact
+                 (lambda ()
+                   (let ((try-fact
+                          (lambda (n)
+                            ((get-next-try-fact) n))))
+                     (make-fact try-fact)))))
+          (get-next-try-fact))))
+    
+    (define myfact4 (make-real-fact2 make-fact))
+    
+    ;; Step 5 final trick
+    
+    (define make-real-fact3
+      (lambda (make-fact)
+        (let ((get-next-try-fact
+                 (lambda (get-next-try-fact)
+                   (let ((try-fact
+                          (lambda (n)
+                            ((get-next-try-fact get-next-try-fact) n))))
+                     (make-fact try-fact)))))
+          (get-next-try-fact get-next-try-fact))))
+    
+    (define myfact5 (make-real-fact3 make-fact))
+
 
 # Prolog 1
 
@@ -1022,6 +1188,23 @@ you wanted that.
     |: hello world.
     X = 'hello world.' .
 
+### Nice solution 
+
+A version from hansondg@rose-hulman.edu
+
+    This one is way better than mine.
+    
+        get_string('\n',[]) :- !.
+        get_string(Head,[Head|Result]) :- get_char(Char), get_string(Char,Result).
+        
+        get_string(Result) :-
+            get_char(Char),
+            get_string(Char,List),
+            atom_chars(Result,List).
+            
+### Other solutions
+
+
 1.  Solution (my super ugly version)
 
         get_string(String) :- get_string('','',String).
@@ -1048,17 +1231,6 @@ you wanted that.
         get_string(X) :- get_string_helper(Y), string_codes(X,Y).
         get_string_helper(X) :- get_code(Y), (Y = 10, X = []; get_string_helper(Z), X = [Y|Z]), !.
 
-4.  A version from hansondg@
-
-    This one is way better than mine.
-    
-        get_string('\n',[]) :- !.
-        get_string(Head,[Head|Result]) :- get_char(Char), get_string(Char,Result).
-        
-        get_string(Result) :-
-            get_char(Char),
-            get_string(Char,List),
-            atom_chars(Result,List).
 
 ### Write a function that takes in a string, and returns a list of strings separated by spaces
 
@@ -1114,11 +1286,12 @@ atomic\_list\_concat.  But I would be curious to see your solutions.
 
 ## Your Prolog Project
 
-[<HomeworkCode/PrologNLPTwo/readme.md>]
+[Assignment is here](Homework/PrologNLP/)
 
 The issues presented today in class are covered in detail here:
 
-[<HomeworkCode/PrologNLPTwo/PrologGrammarRules.pdf>]
+[More detailed discussion of issues with parsing](Homework/PrologNLP/PrologGrammarRules.pdf)
+
 
 ## Issue: Parses with variable length
 
@@ -1214,23 +1387,22 @@ We don't want to know if something parses, we want to output a parse tree.
 We can use the same trick, we used with signular/plural only with the
 parse output.
 
-\#+BEGIN\_SRC prolog
-sentence(X,sentence(NT,VT)) :-
-        append(N,V,X),
-        noun\_phrase(Sop,NT,N),
-        verb\_phrase(Sop,VT,V).
+    sentence(X,sentence(NT,VT)) :-
+            append(N,V,X),
+            noun\_phrase(Sop,NT,N),
+            verb\_phrase(Sop,VT,V).
+    
+    noun\_phrase(Sop,noun(Noun),[Noun]) :- is\_noun(Sop,Noun).
+    verb\_phrase(Sop,verb(Verb),[Verb]) :- is\_verb(Sop,Verb).
+    
+    is\_noun(plural, ninjas).
+    is\_noun(singular,ninja).
+    is\_noun(plural, students).
+    is\_noun(singular,student).
+    
+    is\_verb(singular,attacks).
+    is\_verb(plural,attack).
 
-noun\_phrase(Sop,noun(Noun),[Noun]) :- is\_noun(Sop,Noun).
-verb\_phrase(Sop,verb(Verb),[Verb]) :- is\_verb(Sop,Verb).
-
-is\_noun(plural, ninjas).
-is\_noun(singular,ninja).
-is\_noun(plural, students).
-is\_noun(singular,student).
-
-is\_verb(singular,attacks).
-is\_verb(plural,attack).
-\\#+END\_SRC prolog
 
 # Debugging prolog
 
@@ -2205,7 +2377,7 @@ Which in Maybe's instance looks like this:
     main = putStrLn "Hello"
 
 
-# Elm 4 - Functional Design
+# Haskell 4 - Functional Design
 
 ## What is the point of design?
 
@@ -2447,6 +2619,17 @@ This provides a starting point for making different enemies that
 
 Details are [here](FinalProject.docx).
 
+
+# Rust 1
+
+Ownership
+
+Rust favors straightforward containment relationships - many classic
+interlinked structures are just not possible safely
+
+Borrowing - a bit like pointers BUT it's really short lived
+Generally speaking - don't put borrows in structures (its not impossible but it's probably not what you want)
+When you put borrows in structures you have to think about lifetimes which are complicated
 
 # Instructor's Choice: Smalltalk 1
 
