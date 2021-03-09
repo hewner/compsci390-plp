@@ -1404,7 +1404,7 @@ parse output.
     is\_verb(plural,attack).
 
 
-# Debugging prolog
+# Prolog 5 - Debugging prolog
 
 <http://www.swi-prolog.org/pldoc/man?section=debugoverview>
 
@@ -2435,7 +2435,7 @@ Which in Maybe's instance looks like this:
 
 ## An Initial Example
 
-An excerpt from the elm mario example&#x2026;this is outdated now but the
+An excerpt from the elm mario example& this is outdated now but the
 principle holds:
 
     jump {y} m = if y > 0 && m.y == 0 then { m | vy = 5 } else m
@@ -2514,45 +2514,58 @@ get the job done.
     usually setup at runtime
 -   Object relationships often hidden throughout the code
 
+
+## Polymorphism
+
+Haskell does support polymorphism using typeclasses, but it's fair to
+say it's not emphasized from a design perspective.  Instead, the focus
+on types tends to pull us in the opposite direction verses OO.  Let's
+see if I can explain.  Imagine we want to have some code that draws
+shapes: Rectangles, Squares, Lines.  In OO we'd be encouraged to
+design this as a class hierarchy, in Haskell we'd be encouraged to
+design this as a Algebraic data type (though both languages have
+ways to do the opposite).
+
+In both languages, we can have functions that operate on all our
+types - in Haskell these would be ordinary functions, in OO these
+would be functions on our abstract superclass.
+
+In an OO approach, the main flexibility of the design is to add new
+Shape types.  To do so all we'd need to to create new subclass and
+then it should work will all existing functions.  On the other hand,
+adding new functions would be quite difficult - any function that's
+added must be manually implemented across all shapes (unless it can be
+expresses as some combination of the existing shape functions).
+
+In the Haskell approach, the main flexibility of the design is to make
+new shape operating functions.  Adding new shapes will require editing
+all existing shape reading/writing functions.
+
+Thus is Haskell we tend to try to develop Canonical representations -
+and put our operations in terms of those - e.g. my only shapes will be
+points and lines any more complex shapes will be transformable into
+points and lines.  Then I might locally make a shape type that has
+squares etc., but keep that as just a internal representation.  Then
+my code becomes a pipeline:
+
+    My Shapes > Canonical Shapes > Further Pipeline of Canonical Shape Functions
+
+A lot of the design rests on the fact that that Canonical
+representation works well.  It needs to fully represent what needs to
+be represented, plus be an OK representation for optimization etc.
+
+BUT if it does work it will massively simplify my design.  Because now
+there's this "choke point" in the design where you no longer need (or
+can) think about the representation of shapes beyond the canonical
+shapes.  Hence the system is safely partitioned.
+
 ## My advice:
 
 Think about how you can think about your processes as transformation
 chains.  It's a good model, when it works.  Sometimes it needs some
 care to make the chain emerge.
 
-## Polymorphism
 
-Elm is interesting insofar as it does not support any meaningful
-polymorphism.  E.g. every function call can be explicitly traced -
-there isn't even function overloading.
-
-Instead, you have to use the union types to explicitly enumerate
-things.
-
-\#+BEGIN\_SRC elm
-update : Msg -> AppModel -> ( AppModel, Cmd Msg )
-update message model =
-    case message of
-        NavigationBarMsg subMsg ->
-            let
-                ( updatedNavigationBarModel, navigationBarCmd ) =
-                    NavigationBar.update subMsg model.navigationBarModel
-            in
-                ( { model | navigationBarModel = updatedNavigationBarModel }, Cmd.map NavigationBarMsg navigationBarCmd )
-        MenuMsg subMsg ->
-            let
-                ( updatedMenuModel, MenuCmd ) =
-                    Menu.update subMsg model.MenuModel
-            in
-                ( { model | menuModel = updatedMenuModel }, Cmd.map MenuMsg MenuCmd )
-
-\#+END\_SRC elm
-
-HOWEVER, and we'll talk about this in the next class, we can sometime
-use functions to do polymorphism-type things and simplify this.
-
-Also, note that lack of polymorphism is not a universal feature of
-pure-functional languages.  
 
 # Haskell: Representing Type & State 
 
@@ -2622,7 +2635,259 @@ Details are [here](FinalProject.docx).
 
 # Rust 1
 
-Ownership
+## Very Basics
+
+Rust is a low level language and initially doesn't seem terribly weird:
+
+    fn main() {
+        
+        let command = "my cool command";
+        
+        println!("handling command \"{}\"\n", command);
+        
+        
+        if command == "exit" {
+             std::process::exit(0);
+        }
+    }
+
+
+What makes it stand out to me is
+
+1.  Strong but strange guarantees about memory safety
+2.  Interesting templating system
+3.  General commitment to a featureful modern language without compromising speed
+
+This first lecture and maybe the second is going to be focused on #1
+
+## Variables & Ownership
+
+Most examples come frome here
+
+https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html
+
+### First detail: variables immutable by default
+
+
+    let x = 5;
+    println!("The value of x is: {}", x);
+    x = 6; // <- error here
+    println!("The value of x is: {}", x);
+
+### Variables are freed automatically
+
+    {
+        let s = String::from("hello"); // s is valid from this point forward
+
+        // do stuff with s
+        
+    }   // this scope is now over, and s is no longer valid
+        // hello string is freed
+
+This (incidentally) is different than Java
+
+    
+    {
+        String s = new String("foobar");
+        someOtherObj.name = s; // now 2 things point to the foobar String
+        
+    }  // s's scope is over, but foobar lives on
+
+Points about this Java code
+
+* If the foobar string was not assigned to someOtherObj.name, in
+  theory it could be freed at a similar point.  But in practice it
+  probably wouldn't, we would have to wait for the Garbage Collector
+  to run
+* If a similar thing to otherobject assignment happened in Rust we
+  would need to be super careful not to free that string at the end of
+  s's scope
+  
+
+## Moves
+
+    let s1 = String::from("hello");
+    let s2 = s1;
+
+    println!("{}, world!", s1); // ERROR
+    
+How the error looks
+
+
+    2 |     let s1 = String::from("hello");
+      |         -- move occurs because `s1` has type `String`, which does not implement the `Copy` trait
+    3 |     let s2 = s1;
+      |              -- value moved here
+    4 | 
+    5 |     println!("{}, world!", s1);
+      |                            ^^ value borrowed here after move
+
+
+What this is saying:
+
+"Because the type string is not copied on assignment, 'let s2 = s1'
+MOVED the ownership of the data to s2.  After this move, s1 is no longer
+valid"
+
+This works:
+
+    let s1 = String::from("hello");
+    let s2 = s1.clone();
+
+    println!("s1 = {}, s2 = {}", s1, s2);
+
+Note that this is explicitly a copy
+
+This is implicitly a copy
+
+    let x = 5;
+    let y = x;
+
+    println!("x = {}, y = {}", x, y);
+    
+But don't get distracted - the string case is the way almost all
+structures in Rust act (specifically, all structures that don't
+implement the copy trait).
+
+## Moves and functions
+
+    fn main() {
+        let s = String::from("hello");  // s comes into scope
+    
+        takes_ownership(s);             // s's value moves into the function...
+                                        // ... and so is no longer valid here
+    
+        //DO NOT USE s HERE
+        
+    } // Here, x goes out of scope, then s. But because s's value was moved, nothing
+      // special happens.
+    
+    fn takes_ownership(some_string: String) { // some_string comes into scope
+        println!("{}", some_string);
+    } // Here, some_string goes out of scope and `drop` is called. The backing
+      // memory is freed.
+
+Passing an object into a function in Rust is giving it up forever
+
+In the above code this is a bit nonsensical, because the
+takes\_ownership function is declared in a way that makes it take
+ownership of its parameters but it doesn't seem to actually be using
+that ownership for anything.  It should probably borrow instead, which
+we will talk about soon.
+
+Instead in rust you often intentionally take ownership because you
+want to move the data someplace else:
+
+    pub fn new_student(name : String, age : u32 ) -> Student {
+         Student  { name, age }
+    }
+
+
+    // when called
+    
+    let name_string = String::from("Pat");
+    let my_student = new_student(name_string,17);
+    // name_string is now invalid but I now own my_student
+    
+## Borrows
+
+    fn main() {
+        let s1 = String::from("hello");
+    
+        let len = calculate_length(&s1);
+    
+        println!("The length of '{}' is {}.", s1, len);
+    }
+    
+    fn calculate_length(s: &String) -> usize {
+        s.len()
+    }
+
+calculate\_length "borrows" the string, it doesn't take ownership of
+it or copy it.
+
+It's not crazy to think of this as like a pointer - but that indicates
+a major potential pitfall, how can we guarantee memory safety when
+passing around pointers?  The answer is that rust will ensure safety,
+but borrows will be a lot more limited than we expect...
+
+### Limits on Mutable Borrows
+
+So just regular references, your borrows are by default immutable but
+you can explicitly declare them mutable.
+
+    fn main() {
+        let mut s = String::from("hello");
+    
+        change(&mut s);
+    }
+    
+    fn change(some_string: &mut String) {
+        some_string.push_str(", world");
+    }
+
+Mutable borrows have a big restriction - your object can either have
+unlimited immutable borrows OR one mutable borrow but not both.
+
+    let mut s = String::from("hello");
+
+    let r1 = &s; // no problem
+    let r2 = &s; // no problem
+    let r3 = &mut s; // BIG PROBLEM
+
+The corresponding error looks like this:
+
+
+    error[E0502]: cannot borrow `s` as mutable because it is also borrowed as
+    immutable
+     --> borrow_thrice.rs:6:19
+      |
+    4 |     let r1 = &s; // no problem
+      |               - immutable borrow occurs here
+    5 |     let r2 = &s; // no problem
+    6 |     let r3 = &mut s; // BIG PROBLEM
+      |                   ^ mutable borrow occurs here
+    7 | }
+      | - immutable borrow ends here
+
+
+### A little example
+
+    pub struct Person {
+        first : String,
+        last : String
+    }
+    
+    
+    fn main() {
+        let mut me = Person { first : "Mike".to_string() , last : "Hewner".to_string() };
+    
+        update_name(&mut me, "!");
+        
+        println!("A person: {} {}", &me.first, &me.last);
+    }
+    
+    fn update_name(person : &mut Person, to_append : &str) {
+        person.last.push_str(to_append);
+    }
+
+It's easy to append !, hard to append the first name.
+
+### Dangling References
+
+    fn main() {
+        let reference_to_nothing = dangle();
+    }
+    
+    fn dangle() -> &String {
+        let s = String::from("hello");
+    
+        &s
+    }
+
+We can't let this happen but how we prevent it is gonna make our lives complicated.
+
+# Rust 2
 
 Rust favors straightforward containment relationships - many classic
 interlinked structures are just not possible safely
