@@ -2873,7 +2873,11 @@ The corresponding error looks like this:
 
 It's easy to append !, hard to append the first name.
 
-### Dangling References
+# Rust 2 - More Memory & Errors
+
+Discussion in this section are mostly from here https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html
+
+## Borrows and dangling references
 
     fn main() {
         let reference_to_nothing = dangle();
@@ -2887,14 +2891,209 @@ It's easy to append !, hard to append the first name.
 
 We can't let this happen but how we prevent it is gonna make our lives complicated.
 
-# Rust 2
+This problem can be fixed by return the String directly - thus giving
+ownership to the caller.
 
-Rust favors straightforward containment relationships - many classic
-interlinked structures are just not possible safely
+### Borrows have "lifetimes" associated with them
 
-Borrowing - a bit like pointers BUT it's really short lived
-Generally speaking - don't put borrows in structures (its not impossible but it's probably not what you want)
-When you put borrows in structures you have to think about lifetimes which are complicated
+    {
+        let r;
+
+        {
+            let x = 5;
+            r = &x;
+        }
+
+        println!("r: {}", r);
+    }
+
+The error this produces is
+
+    7  |             r = &x;
+       |                 ^^ borrowed value does not live long enough
+    8  |         }
+       |         - `x` dropped here while still borrowed
+    9  | 
+    10 |         println!("r: {}", r);
+       |                           - borrow later used here
+
+The key thing to note is all borrows have an implicit lifetime
+annotation, very similar to a type annotation.  You can actually even
+refer to the implicit lifetime annotation like this:
+
+    &'a i32 
+
+### Lifetimes are complicated once we introduce functions that return references
+
+    fn longest(x: &str, y: &str) -> &str {
+        if x.len() > y.len() {
+            x
+        } else {
+            y
+        }
+    }
+
+This does not compile because if x and y have different lifetimes,
+it's not obvious what the lifetime of the result string should be.  It
+can be fixed like this:
+
+
+    fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
+        if x.len() > y.len() {
+            x
+        } else {
+            y
+        }
+    }
+
+This looks like it's requiring the two parameters to have the same
+lifetime, but it's a little smarter than that.  It's actually looking
+for a lifetime that both x and y can satisfy - meaning the result
+lifetime is the shorter of the two parameter lifetimes.
+
+### Returned references also extend the length of borrows
+
+    fn main() {
+        let mut me = Person { first : "Mike".to_string() , last : "Hewner".to_string() };
+    
+        let thing_to_update = get_name_for_update(&mut me);
+        thing_to_update.push_str(&me.first); // ERROR!
+        
+        println!("A person: {} {}", &me.first, &me.last);
+    }
+    
+    fn get_name_for_update(person : &mut Person) -> &mut String {
+        &mut person.last
+    }
+
+### You probably do not want to use borrows to make linked structures
+
+    fn main() {
+    
+        let mut students : Vec<String> = Vec::new();
+        let mut cool_students : Vec<&String> = Vec::new();
+    
+        students.push("Alice".to_string());
+        students.push("Bill".to_string());
+        students.push("Charles".to_string());
+    
+        cool_students.push(students.get(0).unwrap());
+        cool_students.push(students.get(1).unwrap());
+    
+        //students.push("Dave".to_string());
+        //students.pop();
+        
+        println!("students: {:?}", students);
+        println!("number of cool students: {}", cool_students.len())
+    }
+
+It's mostly just impossible if things are mutable
+
+### General advice
+
+Use simple containment structures - not networks of interrelationships.
+
+So let's say I have a set of StudentGroup objects, which conceptually
+I think of as contain Student objects.  Students can enter and leave
+groups, students can be modified.  Students can be added to the system
+at any time.
+
+In Java, the StudentGroups would contain student objects, which would
+make it easy to iterate across the students in a group and (say) add a
+grade to them.
+
+In Rust, I'd probably have the student groups contain StudentIds or
+StudentNames as strings or numbers.  Then I'd look up the relevant
+student in the student list and update them.
+
+
+## Errors and safety
+
+### Option Type
+
+So you may notice a lot of rust functions return Option types
+
+    cool_students.push(students.get(0));
+
+This errors
+
+       |
+    11 |     cool_students.push(students.get(0));
+       |                        ^^^^^^^^^^^^^^^ expected `&String`, found enum `Option`
+       |
+       = note: expected reference `&String`
+                       found enum `Option<&String>`
+
+The option type is similar to the haskell Maybe type.  It represents
+something that might have Some particular value, or might have None.
+You can break it apart into the various cases if you want:
+
+    let val = students.get(0);
+
+    match val {
+        Some(x) => {
+            println!("value was {}", x);
+        }
+        None => {
+            println!("abort! students was empty!?!");
+        }
+    }
+
+The interesting part is the None case.  This is very common where you
+do a lookup that could theoretically fail, but if it does fail it
+means something catastrophically bizarre has happened.  You don't want
+to litter spurious error handling in your code everywhere, so what can
+be done?
+
+    let val = students.get(0).unwrap();
+    
+    // either get the value student(0) contains
+    // or panic and abort the whole program
+
+### Propagating errors
+
+Another issue is when you *do* want some sort of error handling and
+you want to ensure it happens but yet again you don't want to litter
+special cases everywhere.
+
+    stream.write(b"HTTP/1.1 200 OK\r\n");
+    stream.write(b"Content-Type: text/html; charset=UTF-8\r\n\r\n");
+    stream.write(b"<html><body>Hello world</body></html>\r\n");
+
+One option would be Java-style exceptions, but that actually
+introduces a performance penalty.  Instead, rust uses Err types
+similar to option types.  It will warn if you don't inspect them,
+though you can just unwrap() (that might seem like a bad design, but
+it's a good design).
+
+    warning: unused `std::result::Result` that must be used
+      --> simple_http_server.rs:19:5
+       |
+    19 |     stream.write(b"HTTP/1.1 200 OK\r\n");
+       |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+       |
+       = note: `#[warn(unused_must_use)]` on by default
+       = note: this `Result` may be an `Err` variant, which should be handled
+
+But usually with these kind of errors - if you do care to handle
+them - you're not going to handle each of these lines in a separate
+way.  Instead propagate them to someone who cares!
+
+    fn handle_write(mut stream: TcpStream) -> std::io::Result<()>{
+    
+        stream.write(b"HTTP/1.1 200 OK\r\n") ? ;
+        stream.write(b"Content-Type: text/html; charset=UTF-8\r\n\r\n") ? ;
+        stream.write(b"<html><body>Hello world</body></html>\r\n") ? ;
+    
+        Ok(())
+    
+    }
+
+The ? operator amounts to - if this is an error result, return that
+result from the function.  If it is not an error result, unwrap it
+(though that unwrapped value is unused in this case).
+
+# Rust 3 - coming soon!
 
 # Instructor's Choice: Smalltalk 1
 
