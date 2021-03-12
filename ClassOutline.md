@@ -3093,7 +3093,122 @@ The ? operator amounts to - if this is an error result, return that
 result from the function.  If it is not an error result, unwrap it
 (though that unwrapped value is unused in this case).
 
-# Rust 3 - Objects & Generics
+# Rust 3: Threads
+
+So Rust is a really good language for threading.  It's memory model
+naturally supports memory safety, and it has some handy abstractions
+for quick and reliable inter-thread communication.  Of course, the
+requirement that everything be verifiably safe does limit flexibility
+in certain ways, but given how tricky it can be to write correct
+concurrent code that tradeoff may well be worth it.
+
+Most of the examples from here
+
+https://doc.rust-lang.org/book/ch16-01-threads.html
+
+## Your basic Rust multi-threaded program
+
+    use std::thread;
+    use std::time::Duration;
+    
+    fn main() {
+        let handle = thread::spawn(|| {
+            for i in 1..10 {
+                println!("hi number {} from the spawned thread!", i);
+                thread::sleep(Duration::from_millis(1));
+            }
+        });
+        
+        for i in 1..5 {
+            println!("hi number {} from the main thread!", i);
+            thread::sleep(Duration::from_millis(1));
+        }
+        
+        handle.join().unwrap();
+
+    }
+
+Note Rust's pretty closure syntax.  You'd put a parameter in between
+those || if your closure took parameters.
+
+## Passing data through move
+
+Non-functional thread code
+
+    use std::thread;
+    use std::time::Duration;
+    
+    fn main() {
+    
+        let names = vec!("thread1","thread2", "thread3");
+        let mut handles = Vec::new();
+        
+        for name in names {
+            let handle = thread::spawn(|| {
+                for i in 1..3 {
+                    println!("hi number {} from the thread {}!", i, name);
+                    thread::sleep(Duration::from_millis(1));
+                }
+            });
+            handles.push(handle);
+        }
+    
+        for handle in handles {
+            handle.join().unwrap();
+        }
+        
+    }
+
+Made safe with move
+
+    use std::thread;
+    use std::time::Duration;
+    
+    fn main() {
+    
+        let names = vec!("thread1","thread2", "thread3");
+        let mut handles = Vec::new();
+        
+        for name in names {
+    
+            let cloned_name = name.clone();
+            
+            let handle = thread::spawn(move || {
+                for i in 1..3 {
+                    println!("hi number {} from the thread {}!", i, cloned_name);
+                    thread::sleep(Duration::from_millis(1));
+                }
+            });
+            handles.push(handle);
+        }
+    
+        for handle in handles {
+            handle.join().unwrap();
+        }
+    
+    
+    }
+
+## Communicating with Messages
+
+    use std::sync::mpsc;
+    use std::thread;
+    
+    fn main() {
+        let (tx, rx) = mpsc::channel();
+    
+        thread::spawn(move || {
+            let val = String::from("hi");
+            tx.send(val).unwrap();
+        });
+    
+        let received = rx.recv().unwrap();
+        println!("Got: {}", received);
+    }
+
+
+
+# Rust 4 - Objects & Generics
 
 Most stuff from here https://doc.rust-lang.org/book/ch10-01-syntax.html
 
