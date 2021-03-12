@@ -3093,7 +3093,252 @@ The ? operator amounts to - if this is an error result, return that
 result from the function.  If it is not an error result, unwrap it
 (though that unwrapped value is unused in this case).
 
-# Rust 3 - coming soon!
+# Rust 3 - Objects & Generics
+
+Most stuff from here https://doc.rust-lang.org/book/ch10-01-syntax.html
+
+## The Pre-basics
+
+"Objects" in rust are structs with added methods
+
+    struct Rectangle {
+        width: u32,
+        height: u32,
+    }
+    
+    impl Rectangle {
+    
+        fn new(new_width : u32, new_height : u32) -> Rectangle {
+            Rectangle {
+                width: new_width,
+                height: new_height,
+            }
+        }
+        
+    
+        fn area(&self) -> u32 {
+            self.width * self.height
+        }
+    }
+    
+    fn main() {
+        let rect1 = Rectangle::new(30,50);
+    
+        println!(
+            "The area of the rectangle is {} square pixels.",
+            rect1.area()
+        );
+    }
+
+This can make things that look and act very much like encapsulated
+objects of the OO variety, or it can also be used to make very
+ordinary C structs with no (or few) methods.
+
+## Now the interesting stuff - Generic Functions
+
+Let's say we have some duplicate code that looks like this:
+
+    fn largest_i32(list: &[i32]) -> &i32 {
+        let mut largest = &list[0];
+    
+        for item in list {
+            if item > largest {
+                largest = item;
+            }
+        }
+    
+        largest
+    }
+    
+    fn largest_char(list: &[char]) -> &char {
+        let mut largest = &list[0];
+    
+        for item in list {
+            if item > largest {
+                largest = item;
+            }
+        }
+    
+        largest
+    }
+
+In an OO language we'd probably solve this with some sort of supertype
+or interface (maybe not so easy when when we're talking about
+primitives).  In Rust the approach looks similar but has some
+differences in practice:
+
+    fn largest<T>(list: &[T]) -> &T {
+        let mut largest = &list[0];
+    
+        for item in list {
+            if item > largest {
+                largest = item;
+            }
+        }
+    
+        largest
+    }
+
+This is a generic function (sometimes also called a template).  Note
+the parameter type <T>.  A key difference is that it produces the
+different functions at compile time - so the compiled code will
+actually have 2 versions of largest.
+
+But this doesn't work:
+
+    error[E0369]: binary operation `>` cannot be applied to type `&T`
+     --> src/main.rs:5:17
+      |
+    5 |         if item > largest {
+      |            ---- ^ ------- &T
+      |            |
+      |            &T
+
+We'll talk about traits, which will allow us to solve this problem, in
+a bit.
+
+## Generic Structs
+
+    struct Point<T> {
+        x: T,
+        y: T,
+    }
+    
+    fn main() {
+        let integer = Point { x: 5, y: 10 };
+        let float = Point { x: 1.0, y: 4.0 };
+    }
+
+You can have more than one generic type per struct too:
+
+    struct Point<T, U> {
+        x: T,
+        y: U,
+    }
+
+## Generic Structs with methods
+
+    struct Point<T> {
+        x: T,
+        y: T,
+    }
+    
+    impl<T> Point<T> {
+        fn x(&self) -> &T {
+            &self.x
+        }
+    }
+    
+    fn main() {
+        let p = Point { x: 5, y: 10 };
+    
+        println!("p.x = {}", p.x());
+    }
+
+Note that the impl block's templating does not have be exactly the
+same as the type.  For example:
+
+    struct Point<T,U> {
+        x: T,
+        y: U,
+    }
+    
+    impl<T> Point<T,T> {
+        fn x(&self) -> &T {
+            &self.x
+        }
+    }
+
+In this version you can have points with two different types, but only
+those with the same time get an implementation of X.
+
+## Traits
+
+Traits in rust are very similar to typeclasses in Haskell
+
+    pub trait Summary {
+        fn summarize(&self) -> String;
+    }
+        
+    pub struct Tweet {
+        pub username: String,
+        pub content: String,
+        pub reply: bool,
+        pub retweet: bool,
+    }
+    
+    impl Summary for Tweet {
+        fn summarize(&self) -> String {
+            format!("{}: {}", self.username, self.content)
+        }
+    }
+    
+    impl Summary for String {
+        fn summarize(&self) -> String {
+            self.clone()
+        }
+    }
+
+Note that you can make existing types implement your traits too, as
+I've done with String above.
+
+## Default implementations
+
+    pub trait Summary {
+        fn summarize(&self) -> String {
+            String::from("(Read more...)")
+        }
+    }
+
+You can give default implementations to your traits.  Note that this
+is pretty much the only thing in Rust that looks like *inheritance*
+(where you can pull the implementation of certain methods into your
+own struct).  It's not the same though, as you can see, because you
+don't inherit fields and you can't substitute subclasses for
+superclasses anywhere.
+
+## Traits in functions
+
+Impl will get you what you want frequently
+
+    pub fn notify(item: &impl Summary) {
+        println!("Breaking news! {}", item.summarize());
+    }
+
+But this is just sugar on the more flexible traint generics bounding
+system:
+
+    pub fn notify<T: Summary>(item1: &T, item2: &T) {
+
+You can also require more than one trait
+
+    pub fn notify<T: Summary + Display>(item: &T) {
+
+## Fixing our largest example from the beginning
+
+    fn largest<T: PartialOrd + Copy>(list: &[T]) -> T {
+        let mut largest = list[0];
+    
+        for &item in list {
+            if item > largest {
+                largest = item;
+            }
+        }
+    
+        largest
+    }
+    
+    fn main() {
+        let number_list = vec![34, 50, 25, 100, 65];
+    
+        let result = largest(&number_list);
+        println!("The largest number is {}", result);
+    
+        let char_list = vec!['y', 'm', 'a', 'q'];
+    
+        let result = largest(&char_list);
+        println!("The largest char is {}", result);
+    }
 
 # Instructor's Choice: Smalltalk 1
 
