@@ -1,27 +1,28 @@
 name,dirname,date
-Racket1,,2021-01-24 23:55:00
-Racket2,,2021-01-27 23:55:01
-Racket3,,2021-01-31 23:55:02
-Scheme In Scheme (Part 1),,2021-02-03 23:55:03
-Scheme In Scheme (Part 2),,2021-02-07 23:55:03
-PrologPathFinder,PrologPathFinder,2021-02-10 23:55:04
-PrologWordFind,PrologWordFind,2021-02-14 23:55:05
-PrologNLP (Part 1),PrologNLP,2021-02-17 23:55:06
-PrologNLP (Part 2),PrologNLP,2021-02-21 23:55:06
-ErlangListProbs,ErlangListProbs,2021-02-24 23:55:08
-ErlangMergeSort,ErlangMergeSort,2021-02-28 23:55:09
-Erlang Raft (Part 1),ErlangRaft,2021-03-03 23:55:00
-Erlang Raft (Part 2),ErlangRaft,2021-03-07 23:55:00
-HaskellHighOrder,HaskellHighOrder,2021-03-11 23:55:00
-HaskellADTAndTypeclasses,HaskellADTAndTypeclasses,2021-03-11 23:55:00
-HaskellPong,HaskellPong,2021-03-14 23:55:03
-HaskellVideoGame (Part 1),HaskellVideoGame,2021-03-17 23:55:04
-HaskellVideoGame (Part 1),HaskellVideoGame,2021-03-21 23:55:05
-Rust HW 1,,2021-03-24 23:55:06
-Rust HW 2,,2021-03-28 23:55:07
-Rust Project (Part 1),,2021-03-31 23:55:08
-Rust Project (Part 2),,2021-04-04 23:55:09
-Final Project Proposal,FinalProject,2021-04-04 23:55:10
-Final Project Demo,FinalProject,2021-04-23 23:55:11
-Lua Inheritance,LuaInheritance,2021-04-07 23:55:12
-Student Language Activity Grade Submissions,,2021-04-25 23:55:14
+Racket1,,1/24/2021 23:55
+Racket2,,1/27/2021 23:55
+Racket3,,1/31/2021 23:55
+Scheme In Scheme (Part 1),,2/3/2021 23:55
+Scheme In Scheme (Part 2),,2/7/2021 23:55
+PrologPathFinder,PrologPathFinder,2/10/2021 23:55
+PrologWordFind,PrologWordFind,2/14/2021 23:55
+PrologNLP (Part 1),PrologNLP,2/17/2021 23:55
+PrologNLP (Part 2),PrologNLP,2/21/2021 23:55
+ErlangListProbs,ErlangListProbs,2/24/2021 23:55
+ErlangMergeSort,ErlangMergeSort,2/28/2021 23:55
+Erlang Raft (Part 1),ErlangRaft,3/3/2021 23:55
+Erlang Raft (Part 2),ErlangRaft,3/7/2021 23:55
+HaskellHighOrder,HaskellHighOrder,3/11/2021 23:55
+HaskellADTAndTypeclasses,HaskellADTAndTypeclasses,3/11/2021 23:55
+HaskellPong,HaskellPong,3/14/2021 23:55
+HaskellVideoGame (Part 1),HaskellVideoGame,3/17/2021 23:55
+HaskellVideoGame (Part 1),HaskellVideoGame,3/21/2021 23:55
+Rust HW 1,,3/24/2021 23:55
+Rust HW 2,,3/28/2021 23:55
+Rust Project (Part 1),,3/31/2021 23:55
+Rust Project (Part 2),,4/4/2021 23:55
+Final Project Proposal,FinalProject,4/4/2021 23:55
+Final Project Demo,FinalProject,4/23/2021 23:55
+Lua Inheritance,LuaInheritance,4/7/2021 23:55
+Final Project Videos,FinalProject,4/25/2021 23:55
+,,4/18/2021 23:55

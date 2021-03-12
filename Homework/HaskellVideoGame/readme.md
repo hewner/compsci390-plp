@@ -56,7 +56,7 @@ functions as raw building blocks to form "languages" of parts.
 For example, here's a bullet I made in my system that breaks into four
 parts:
 
-    downThenRight :: Entity -> [Entity]
+    bigSplitForever :: Entity -> [Entity]
     bigSplitForever =
       fastup
       $ wait 15
