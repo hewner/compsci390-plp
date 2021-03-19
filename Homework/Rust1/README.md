@@ -11,7 +11,7 @@ To run a particular binary
     cargo run --bin gradebook
     cargo run --bin racing
 
-# Rust Gradebook
+# Rust Gradebook (20 points)
 
 So in this assignment we're going to build a simple app that will let
 us play just a bit with the borrow checker.  It's a little interactive
@@ -22,7 +22,7 @@ ownership and borrowing here:
 
 https://learning-rust.github.io/docs/c1.ownership.html
 
-## Part 1: Add Student
+## Part 1: Add Student (10 points)
 
 Take a look at the given student gradebook code.  You can see we've
 already built most of the text processing for you.  The command we'll
@@ -47,7 +47,7 @@ There is one additional wrinkle though - I would like you do this work
 in a separate add-student method.  This will let you practice how
 passing parameters works in Rust.  The code comment has some details.
 
-## Part 2: Show Grades
+## Part 2: Show Grades (3 points)
 
 This should be fairly straightforward - add code for the show grades
 command.  It works like this:
@@ -74,7 +74,7 @@ have grades - but soon we will add that feature.
 Small hint: if you want to print a vector of floats, use {:?} rather
 than {} in your println!.
 
-## Part 3: Add grade
+## Part 3: Add grade (7 points)
 
 So the add grade function adds a grade.  There is a complication
 though, in this class all grades are assigned for pairs of students.
@@ -121,19 +121,21 @@ Note that this code will not work
 
 Make sure you understand why before you try and fix it.
 
-# Rust Racing Processes
+# Rust Racing Processes (20 points)
 
-In this exercise I'd like you to experiment with rust threading.  Take
-a look in racing.rs.  You will see a function do_race that has a
-thread going through 3 checkpoints and then finishing.  Each
-checkpoint takes a random amount of time to complete.  If you run the unmodified code, you should see something like this:
+In this exercise I'd like you to experiment with rust threading.  Be
+sure you watch the 3rd rust lecture before you attempt this.  Take a
+look in racing.rs.  You will see a function do_race that has a thread
+going through 3 checkpoints and then finishing.  Each checkpoint takes
+a random amount of time to complete.  If you run the unmodified code,
+you should see something like this:
 
     racer 1 passed checkpoint 1
     racer 1 passed checkpoint 2
     racer 1 passed checkpoint 3
     racer 1 finished!
 
-## Part 1: Some threads
+## Part 1: Some threads (10 points)
 
 Modify this code so it starts 3 threads the do the race in paralell.
 When you run the code you should see something like this:
@@ -156,7 +158,7 @@ you'll have to put a loop in your main which means your program will
 not exit without being killed (we'll handle that in a graceful way in
 the next part).
 
-# Part 2: Communication
+# Part 2: Communication (10 points)
 
 Each of the racer threads should communicate back to the main thread
 when they pass a checkpoint.  The main thread should keep track of the

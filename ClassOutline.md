@@ -3455,6 +3455,16 @@ You can also require more than one trait
         println!("The largest char is {}", result);
     }
 
+# Rust Debugging
+
+So debugging rust is pretty easy if you're familiar with gdb (this is
+on unix systems).  If not it can be a little arcane but here's a
+little tutorial to get you started:
+
+https://tigercosmos.xyz/post/2020/09/system/debug-gdb/
+
+
+
 # Instructor's Choice: Smalltalk 1
 
 What to do:
