@@ -4194,15 +4194,19 @@ From the nice tutorial here:
 
 ## Now you try
 
+To make your life easier, I've made a repl
+
+https://replit.com/@hewner/LuaCIntegration2#README.md
+
+Or you can follow the instructions below to try and get it installed
+on a local linux installation.
+
 ### Installing Lua + C integration
 
 For me, on ubuntu16 this worked:
 
     sudo apt install lua5.3 liblua5.3-dev
 
-Or, if you like you can just ssh into erlang.rose-hulman.edu and use lua there.  But in the case you'll want to checkout your SVN repo on erlang:
-
-    svn co http://svn.csse.rose-hulman.edu/repos/csse403-201720-YOURNETID
 
 ### Making sure it works
 
