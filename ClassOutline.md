@@ -4465,6 +4465,171 @@ segregated) as we wish.
 
 Figures 6 and 7
 
+
+# Instructors Choice: Forth
+
+So sometimes the constraints of a language move it in some really
+interesting ways.  I think Forth is a great example of a language
+where this happened.
+
+## Forth Basics
+
+So if somebody knows one thing about Forth, it's usually that it is a
+stack based programming language.
+
+    3 4 + .
+    
+This is adding 2 numbers in forth, "3" means push 3 onto the stack.
+"4" means push 4.  + pops the top 2 numbers on the stack and pushes
+the sum on the stack.  . pushes the top number off the stack and
+displays it.
+
+Here's a more fun example:
+
+    : ABS DUP 0< IF NEGATE THEN ;
+    
+This defines a forth function ABS (absolute value).  In detail:
+
+1. : ABS  make a new function named ABS
+2. DUP duplicate the top value on the stack
+3. 0< pop the top value on the stack, and put "true" on the stack if it's negative
+4. IF begin an if block that we'll enter if the value on top of the stack is true
+5. NEGATE negates the value on the top of the stack
+6. THEN ends the if block
+7. ; ends the function
+
+Play with it here if you like:
+
+
+
+
+## It's Not All Stack!
+
+So the fact that forth uses the stack basically means most forth
+programs don't have local variables (just an idea of what's on the
+stack when that exists in the mind of the programmer) or function
+parameters.
+
+But that doesn't mean it has no variables or heap.
+
+    VARIABLE MYVAR ( allocate a heap global, myvar will return its address)
+    
+    99 MYVAR ! ( set 99 to MYVAR address)
+    MYVAR @ . ( get value at myvar address)
+
+Similarly it can straightforwardly handle arrays, build struct like
+things etc.
+
+## What makes forth this way?
+
+Forth is a language that's designed to be very easy to compile.  How
+easy?  So the version of forth I've used is implemented in about 1000
+lines of *assembly* language.  And it's compiled, not interpreted
+(mostly).
+
+Forth's parsing works like this:
+
+"Look for the next space.  Ok that thing is either a number or a
+function.  If it's a number put it on the stack.  If it's a function
+then execute it.
+
+    : ABS DUP 0< IF NEGATE THEN ;
+
+So in this example ":" is a standalone function.  IF is a standalone
+function.  THEN is a standalone function.  ; is a standalone function.
+Any "parse tree" you might imagine exists is only in your mind.
+
+## How could IF be a standalone function?
+
+So if you look at the above code it might not seem weird until you
+realize this key fact.  IF is not a function that checks if something
+is true.  IF is a function that outputs something that will compile
+into an IF in the function we are currently defining.
+
+This is the idea of IMMEDIATE functions.  During compilation, ordinary
+forth functions are not run.  For example, the DUP in ABS isn't run
+when it's encountered.  Instead, the a reference to the DUP function
+is inserted into the growing semi-compilied code of the in progress
+ABS function.  However, IMMEDIATE functions like IF are executed
+during the compilation process - and then they can output arbitrary
+assembly or even change the way compilation works.
+
+To give an example:
+
+    : PRINTHELLO S" Hello forth lovers" TYPE ;
+
+S" is an immediate function that starts consuming characters until it
+encounters a ", outputting these characters into the function being
+defined in a way the means they won't be executed but instead be used
+as data.
+
+This may be a little confusing so let me summarize the main point:
+
+In forth, extending the compiler is as simple as setting one flag on a
+function.
+
+## What is cool about Forth?
+
+Not being in the era of FORTH we loose a little of how revolutionary
+it was.  To give you a feel, FORTH basically was developed at
+approximately the same time as C.  But while C is complex fixed
+language built part-and-parcel with a separate operating system to
+allow it to work, FORTH is a tiny language that provides a fully
+interactive development environment and requires basically no OS,
+beyond some rudimentary booting.
+
+If you can remember that Forth is the Perl of assembly language,
+that's a start to getting the idea.
+
+We normally think of low-level development as very stodgy constrained
+development environments, but Forth is the opposite of that.
+
+Beyond simply the idea of immediate functions, every aspect of FORTH
+is essentially hackable.  Forth's function lookup and code storage is
+a well defined structure - you can exploit it to store your own data
+in creative ways (that's how variables are stored for example).  Or
+your can rewrite the way it works and rewrite the functions that
+depend on it to use your new system.
+
+You can use forth to bootstrap an entirely different programming
+language, and compile that language to forth's assembly language if
+you so desire so you can use forth and your new language
+interchangeably.
+
+## So why don't we use Forth today?
+
+One key reason is that computers are faster, allowing more complex
+(but easily human-understood) languages.
+
+There's also a greater willingness to trade-off to allow for
+standardization.  Forth allows for really abstract code that
+nonetheless runs really close to the computer hardware.  The problem
+with this is the result of this does not tend to be portable between
+systems.  Even within Forth itself, your can hack the complier or
+what-have-you but these hacks wouldn't necessarily be compatable with
+other Forth libraries if you changed things in a big way.  These days
+we tend to build either abstract systems (e.g. scheme) or systems that
+run close to the hardware (C) but don't demand both.  There's an
+expectation that code is portable.
+
+Forth does have standardized versions, but that takes away a little
+from what made Forth cool in the first place.
+
+## So what should we take away from Forth?
+
+One thing is that if you're even in a situation where you don't have a
+compiler that targets your system building an implementation of Forth
+is orders of magnitude easier that building a language like C, and in
+many ways more flexible.
+
+But the other thing I hope you take away is a bit of the philosophy of
+hacking the language to do what you want - very different from stodgy
+C and Haskell.  Rather than "how can we make everything verifiable?"
+we can ask "what if we trusted the programmer to do the right thing
+and empowered them?" You can see this idea in modern language
+communities like Ruby, Smalltalk - and yes Forth still has fans out
+there too.
+
 # Final Reflections
 
 ## Course Evaluations
